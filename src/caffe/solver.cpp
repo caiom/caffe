@@ -164,7 +164,7 @@ void Solver<Dtype>::Solve(const char* resume_file) {
   iter_ = 0;
   current_step_ = 0;
   Dtype max_valid_acc = 0.0;
-  int patience = 50;
+  int patience = 100;
   if (resume_file) {
     LOG(INFO) << "Restoring previous solver status from " << resume_file;
     Restore(resume_file);
@@ -200,7 +200,7 @@ void Solver<Dtype>::Solve(const char* resume_file) {
 		{
 			if (acc > max_valid_acc)
 			{
-				patience = 50;
+				patience = 100;
 				max_valid_acc = acc;
 
 				LOG(INFO) << "New best acc on validation: " << max_valid_acc;
@@ -257,7 +257,7 @@ void Solver<Dtype>::Solve(const char* resume_file) {
   }
   // Always save a snapshot after optimization, unless overridden by setting
   // snapshot_after_train := false.
-  if (param_.snapshot_after_train()) { Snapshot(); }
+  //if (param_.snapshot_after_train()) { Snapshot(); }
   // After the optimization is done, run an additional train and test pass to
   // display the train and test loss/outputs if appropriate (based on the
   // display and test_interval settings, respectively).  Unlike in the rest of
