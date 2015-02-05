@@ -151,6 +151,8 @@ NONEMPTY_WARN_REPORT := $(BUILD_DIR)/$(WARNS_EXT)
 # Derive include and lib directories
 ##############################
 CUDA_INCLUDE_DIR := $(CUDA_DIR)/include
+INCLUDE_DIRS += /home/ubuntu/cuDNN/cudnn-6.5-linux-R1/
+LIBRARY_DIRS += /home/ubuntu/cuDNN/cudnn-6.5-linux-R1/
 
 CUDA_LIB_DIR :=
 # add <cuda>/lib64 only if it exists

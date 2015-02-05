@@ -163,6 +163,8 @@ void Solver<Dtype>::Solve(const char* resume_file) {
 
   iter_ = 0;
   current_step_ = 0;
+  Dtype max_valid_acc = 0.0;
+  int patience = 50;
   if (resume_file) {
     LOG(INFO) << "Restoring previous solver status from " << resume_file;
     Restore(resume_file);
@@ -185,13 +187,35 @@ void Solver<Dtype>::Solve(const char* resume_file) {
     // Save a snapshot if needed.
     if (param_.snapshot() && iter_ > start_iter &&
         iter_ % param_.snapshot() == 0) {
-      Snapshot();
+      //Snapshot();
     }
 
     if (param_.test_interval() && iter_ % param_.test_interval() == 0
         && (iter_ > 0 || param_.test_initialization())) {
-      TestAll();
+      for (int test_net_id = 0; test_net_id < test_nets_.size(); ++test_net_id) {
+
+		Dtype acc = Test(test_net_id);
+
+		if (test_net_id == 1)
+		{
+			if (acc > max_valid_acc)
+			{
+				patience = 50;
+				max_valid_acc = acc;
+
+				LOG(INFO) << "New best acc on validation: " << max_valid_acc;
+				Snapshot();
+			}
+			else patience --;
+
+			LOG(INFO) << "Best acc on validation: " << max_valid_acc;
+
+		}
+	  }
     }
+
+	if (patience == 0)
+		break;
 
     const bool display = param_.display() && iter_ % param_.display() == 0;
     net_->set_debug_info(display && param_.debug_info());
@@ -260,7 +284,7 @@ void Solver<Dtype>::TestAll() {
 }
 
 template <typename Dtype>
-void Solver<Dtype>::Test(const int test_net_id) {
+Dtype Solver<Dtype>::Test(const int test_net_id) {
   LOG(INFO) << "Iteration " << iter_
             << ", Testing net (#" << test_net_id << ")";
   // We need to set phase to test before running.
@@ -297,6 +321,9 @@ void Solver<Dtype>::Test(const int test_net_id) {
       }
     }
   }
+
+  Dtype acc;
+
   if (param_.test_compute_loss()) {
     loss /= param_.test_iter(test_net_id);
     LOG(INFO) << "Test loss: " << loss;
@@ -307,15 +334,19 @@ void Solver<Dtype>::Test(const int test_net_id) {
     const string& output_name = test_net->blob_names()[output_blob_index];
     const Dtype loss_weight = test_net->blob_loss_weights()[output_blob_index];
     ostringstream loss_msg_stream;
-    const Dtype mean_score = test_score[i] / param_.test_iter(test_net_id);
+    Dtype mean_score = test_score[i] / param_.test_iter(test_net_id);
     if (loss_weight) {
       loss_msg_stream << " (* " << loss_weight
                       << " = " << loss_weight * mean_score << " loss)";
     }
+    else acc = mean_score;
+
     LOG(INFO) << "    Test net output #" << i << ": " << output_name << " = "
         << mean_score << loss_msg_stream.str();
   }
   Caffe::set_phase(Caffe::TRAIN);
+
+  return acc;
 }
 
 

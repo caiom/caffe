@@ -45,7 +45,7 @@ class Solver {
   void Snapshot();
   // The test routine
   void TestAll();
-  void Test(const int test_net_id = 0);
+  Dtype Test(const int test_net_id = 0);
   virtual void SnapshotSolverState(SolverState* state) = 0;
   // The Restore function implements how one should restore the solver to a
   // previously snapshotted state. You should implement the RestoreSolverState()
